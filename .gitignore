@@ -1,0 +1,11 @@
+build
+node_modules
+static/gen
+zip
+tw_imports
+.DS_Store
+.env
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+.gradle
+lib/**

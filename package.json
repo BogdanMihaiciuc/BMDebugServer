@@ -1,0 +1,48 @@
+{
+	"name": "bm-thingworx-debug-server",
+	"packageName": "bm-thingworx-debug-server",
+	"moduleName": "bm-thingworx-debug-server",
+	"version": "1.6.193-beta.1",
+	"description": "Debug projects created using ThingworxVSCodeProject.",
+	"author": "Bogdan Mihaiciuc",
+	"thingworxProjectName": "BMDebugServer",
+	"minimumThingWorxVersion": "6.0.0",
+	"homepage": "https://github.com/BogdanMihaiciuc/",
+	"autoUpdate": {
+		"gitHubURL": "https://api.github.com/repos/BogdanMihaiciuc/BMThingworxDebugServer/releases/latest"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/BogdanMihaiciuc/BMThingworxDebugServer.git"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "gulp build",
+		"upload": "gulp upload"
+	},
+	"license": "MIT",
+	"files": [
+		"lib",
+		"build",
+		"LICENSE"
+	],
+	"devDependencies": {
+		"@types/node": "^8.10.11",
+		"babel-plugin-remove-import-export": "^1.1.0",
+		"bm-thing-transformer": "^0.16.0-beta.1",
+		"cli-progress": "^3.6.1",
+		"del": "^5.0.0",
+		"delete-empty": "^3.0.0",
+		"dotenv": "^10.0.0",
+		"gulp": "^4.0.2",
+		"gulp-babel": "^8.0.0",
+		"gulp-concat": "^2.6.1",
+		"gulp-terser": "^1.2.0",
+		"gulp-typescript": "^6.0.0-alpha.1",
+		"gulp-zip": "^5.0.0",
+		"request": "^2.85.0",
+		"typescript": "^4.3.4",
+		"vscode-debugprotocol": "^1.51.0",
+		"xml2js": "^0.4.19"
+	}
+}

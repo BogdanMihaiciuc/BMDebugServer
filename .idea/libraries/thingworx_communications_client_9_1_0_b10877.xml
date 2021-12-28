@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="thingworx-communications-client-9.1.0-b10877">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/common/thingworx-communications-client-9.1.0-b10877.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

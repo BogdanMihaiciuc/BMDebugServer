@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><Entities>
+    
+  <ExtensionPackages>
+        
+    <ExtensionPackage name="BMObservingDebugger" description="" vendor="Bogdan Mihaiciuc" packageVersion="1.0.30" minimumThingWorxVersion="9.1.0">
+            
+      <JarResources/>
+          
+    </ExtensionPackage>
+      
+  </ExtensionPackages>
+    
+  <Subsystems>
+        
+    <Subsystem className="com.bogdanmihaiciuc.debugger.BMObservingDebugger" description="Provides javascript runtime inspection and message sending features to the Thingworx VSCode Debugger" name="BMObservingDebugger" aspect.isEditableExtensionObject="true">
+            
+      <RunTimePermissions>
+                
+        <Permissions resourceName="*">
+                    
+          <ServiceInvoke>
+                        
+            <Principal isPermitted="true" principalName="Administrators" type="Group"/>
+                        
+            <Principal isPermitted="true" principalName="Developers" type="Group"/>
+                        
+            <Principal isPermitted="true" principalName="Users" type="Group"/>
+                      
+          </ServiceInvoke>
+                  
+        </Permissions>
+              
+      </RunTimePermissions>
+          
+    </Subsystem>
+      
+  </Subsystems>
+  
+</Entities>

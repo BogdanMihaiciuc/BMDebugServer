@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "module": "ESNext",
+        "target": "es5",
+        "downlevelIteration": true,
+        "experimentalDecorators": true,
+        "strict": true,
+        "declaration": true,
+        "alwaysStrict": false,
+        "moduleResolution": "node",
+        "lib": [
+            "esnext"
+        ],
+        "typeRoots": [
+            "./typings/",
+            "./node_modules/@types/"
+        ]
+    },
+    "include": [
+        "./static/**/*.d.ts",
+        "./src/**/*.d.ts",
+        "./src/**/*.ts",
+        "./tw_imports/**/*.d.ts"
+    ]
+}
