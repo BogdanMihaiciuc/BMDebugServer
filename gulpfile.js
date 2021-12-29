@@ -342,11 +342,52 @@ async function deploy() {
     }
 }
 
+async function removeExtension() {
+    const host = thingworxConnectionDetails.thingworxServer;
+
+    return new Promise((resolve, reject) => {
+        const twRequest = request.post({
+            url: `${host}/Thingworx/Subsystems/PlatformSubsystem/Services/DeleteExtensionPackage`,
+            headers: {
+                'X-XSRF-TOKEN': 'TWX-XSRF-TOKEN-VALUE',
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-THINGWORX-SESSION': 'true'
+            },
+            body: {packageName: package.packageName},
+            json: true
+        },
+        function (err, httpResponse, body) {
+            if (err) {
+                console.error("Failed to delete project from thingworx");
+                // Failing to remove the previous version shouldn't stop the upload process; this can happen, for example, during
+                // the first upload when the project when no previous version exists
+                resolve();
+                return;
+            }
+
+            if (httpResponse.statusCode != 200) {
+                console.log(`Failed to delete project from thingworx. We got status code ${httpResponse.statusCode} (${httpResponse.statusMessage})
+                body:
+                ${httpResponse.body}`);
+            } 
+            else {
+                console.log(`Deleted previous version of ${package.packageName} from Thingworx!`);
+            }
+            resolve();
+        })
+        
+
+        authorizeRequest(twRequest);
+    })
+}
+
 exports.buildJava = series(clean, buildJava, zip);
 exports.buildDeclarations = series(buildDeclarations);
 exports.build = series(buildDeclarations, clean, buildJava, build, merge, zip);
 exports.buildJs = series(buildDeclarations, clean, build, zip);
 exports.upload = series(buildDeclarations, incrementVersion, clean, buildJava, build, merge, zip, upload);
 exports.uploadJs = series(buildDeclarations, incrementVersion, clean, build, zip, upload);
+exports.removeAndUpload = series(buildDeclarations, clean, buildJava, build, merge, zip, removeExtension, upload);
 exports.deploy = series(buildDeclarations, incrementVersion, clean, build, zip, upload, deploy);
 exports.default = series(gen);
