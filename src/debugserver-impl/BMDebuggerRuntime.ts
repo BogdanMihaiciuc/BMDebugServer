@@ -706,7 +706,10 @@ class BMDebuggerRuntime {
             BMDebuggerRuntime._deactivateDebugger(this);
 
             const frames = BMDebuggerRuntime.getPrivateField(Subsystems.BMObservingDebugger, 'frames');
-            frames.get().delegate = null;
+            const frame = frames.get();
+            if (frame) {
+                frame.delegate = null;
+            }
         }
     }
 
