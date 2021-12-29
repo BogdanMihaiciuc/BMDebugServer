@@ -385,11 +385,23 @@ class BMDebuggerRuntime {
             processedFiles[file] = true;
 
             const breakpoints = debugInformation[file];
+            
+            // Attempt to keep the active breakpoints active
+            const currentBreakpoints = self._breakpoints[file];
 
             self._breakpoints[file] = {};
             breakpoints.forEach(function (breakpoint) {
+                const newBrekpoint = self._debuggerBreakpointWithLocation(breakpoint, file);
                 self._breakpoints[file][breakpoint.line] ||= {};
-                self._breakpoints[file][breakpoint.line][breakpoint.column!] = self._debuggerBreakpointWithLocation(breakpoint, file);
+                self._breakpoints[file][breakpoint.line][breakpoint.column!] = newBrekpoint;
+
+                // If a previous breakpoint already existed at this line and column, copy its active, verified and condition properties
+                const oldObreakpoint = currentBreakpoints?.[breakpoint.line]?.[breakpoint.column];
+                if (oldObreakpoint) {
+                    newBrekpoint.active = oldObreakpoint.active;
+                    newBrekpoint.verified = oldObreakpoint.verified;
+                    newBrekpoint.condition = oldObreakpoint.condition;
+                }
             });
         });
 
