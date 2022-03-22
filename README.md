@@ -1,6 +1,6 @@
 # Intro
 
-A thingworx extension that allows debugging typescript projects created using [ThingworxVSCodeProject](https://github.com/ptc-iot-sharing/ThingworxVSCodeProject) through Visual Studio Code's debugger UI.
+A thingworx extension that allows debugging typescript projects created using [ThingworxVSCodeProject](https://github.com/BogdanMihaiciuc/ThingworxVSCodeProject) through Visual Studio Code's debugger UI.
 
 Supporting common debugger features such as setting breakpoints, stepping through code, pausing on exceptions and evaluating expressions, this can significantly reduce the time it takes to fix bugs. This is especially important considering that script errors in thingworx often don't really include any information about what went wrong, even in the script log.
 
@@ -15,7 +15,7 @@ The first step is to install this extension. You can either download the latest 
 The extension creates a `BMObservingDebugger` subsystem, which must be started in order to be able to debug. By default, this subsystem may be disabled. To enable and start it, go to it using the composer, select the `Enabled`, save, then start it. Optionally, if you may also select the `Auto Start` checkbox to cause this subsystem to run on server startup.
  * **NOTE: Enabling this susbsystem will cause ALL newly created services to run interpreted mode which will impact performance.** This will also open a websocket endpoint at `/Thingworx/ThingworxDebugger` that is used to notify the frontend of important events, such as a thread stopping at a breakpoint.
 
-After the subsystem starts, you will need to redeploy your typescript project, built with the `--debug` flag. For more information, see [ThingworxVSCodeProject](https://github.com/ptc-iot-sharing/ThingworxVSCodeProject) and [ThingworxVSCodeDebugger](https://github.com/BogdanMihaiciuc/ThingworxVSCodeDebugger).
+After the subsystem starts, you will need to redeploy your typescript project, built with the `--debug` flag. For more information, see [ThingworxVSCodeProject](https://github.com/BogdanMihaiciuc/ThingworxVSCodeProject) and [ThingworxVSCodeDebugger](https://github.com/BogdanMihaiciuc/ThingworxVSCodeDebugger).
 
 At this point, you may attach the Visual Studio Code debugger to thingworx and start debugging.
 
