@@ -1249,6 +1249,13 @@ class BMDebuggerRuntime {
             }
         }
 
+        // Names to be used for classes which are handled the same way
+        // but have multiple implementations
+        let JSONArrayName;
+        let JSONObjectName;
+        let InfoTableName;
+        let ValueCollectionName;
+
         switch (javaClass) {
             // For boxed java types, treat them as javascript natives
             case Packages.java.lang.String:
@@ -1319,15 +1326,101 @@ class BMDebuggerRuntime {
                     indexedVariables: 0,
                     presentationHint: presentationHint || defaultPresentationHint
                 }
-            // Thingworx types
-            case Packages.com.thingworx.types.InfoTable:
-                if (isContent) return this._contentOfInfoTable(object);
+            // non-native JSON types
+            case Packages.com.thingworx.dsl.engine.adapters.JSONObjectAdapter:
+                JSONObjectName = 'JSONObjectAdapter';
+            case Packages.org.json.JSONObject:
+                if (isContent) return this._contentOfJSONObject(object);
+                JSONObjectName = 'JSONObject';
+
+                // For JSONObject, typical javascript methods like Object.keys do not work
+                // So the the only way to get a count is to do a for loop through it
+                let JSONVariables = 0;
+                for (const key in object) {
+                    JSONVariables++;
+                }
+
                 return {
                     name: name || 'object',
-                    type: 'InfoTable',
-                    value: `InfoTable[${object.length}]`,
+                    type: JSONObjectName,
+                    value: JSONObjectName,
+                    variablesReference: this._IDForObject(object),
+                    namedVariables: JSONVariables,
+                    indexedVariables: 0,
+                    presentationHint: presentationHint || defaultPresentationHint
+                }
+            case Packages.com.thingworx.dsl.engine.adapters.JSONArrayAdapter:
+                JSONArrayName = 'JSONArrayAdapter'
+            case Packages.org.json.JSONArray:
+                if (isContent) return this._contentOfArrayList(object);
+                JSONArrayName = JSONArrayName || 'JSONArray';
+
+                return {
+                    name: name || 'object',
+                    type: JSONArrayName,
+                    value: `${JSONArrayName}[${object.length}]`,
+                    variablesReference: this._IDForObject(object),
+                    namedVariables: 2, // The additional fields are length and class,
+                    indexedVariables: object.length,
+                    presentationHint: presentationHint || defaultPresentationHint
+                }
+            // Thingworx types
+            case Packages.com.thingworx.dsl.engine.adapters.ThingworxInfoTableAdapter:
+                InfoTableName = 'ThingworxInfoTableAdapter';
+            case Packages.com.thingworx.types.InfoTable:
+                if (isContent) return this._contentOfInfoTable(object);
+                InfoTableName = InfoTableName || 'InfoTable';
+
+                return {
+                    name: name || 'object',
+                    type: InfoTableName,
+                    value: `${InfoTableName}[${object.length}]`,
                     variablesReference: this._IDForObject(object),
                     namedVariables: 4, // The additional fields are dataShape, rows, length and class
+                    indexedVariables: 0,
+                    presentationHint: presentationHint || defaultPresentationHint
+                }
+            case Packages.com.thingworx.metadata.DataShapeDefinition:
+                if (isContent) return this._contentOfDataShape(object);
+                return {
+                    name: name || 'object',
+                    type: 'DataShapeDefinition',
+                    value: 'DataShapeDefinition',
+                    variablesReference: this._IDForObject(object),
+                    namedVariables: 2, // fields and class
+                    indexedVariables: 0,
+                    presentationHint: presentationHint || defaultPresentationHint
+                }
+            case Packages.com.thingworx.metadata.collections.FieldDefinitionCollection:
+                if (isContent) return this._contentOfFieldDefinitionCollection(object);
+                return {
+                    name: name || 'object',
+                    type: 'FieldDefinitionCollection',
+                    value: 'FieldDefinitionCollection',
+                    variablesReference: this._IDForObject(object),
+                    namedVariables: Object.keys(object).length + 1, // The additional field is class
+                    indexedVariables: 0,
+                    presentationHint: presentationHint || defaultPresentationHint
+                }
+            case Packages.com.thingworx.metadata.FieldDefinition:
+                if (isContent) return this._contentOfFieldDefinition(object);
+                return {
+                    name: name || 'object',
+                    type: 'FieldDefinition',
+                    value: 'FieldDefinition',
+                    variablesReference: this._IDForObject(object),
+                    namedVariables: 7, // The fields are name, baseType, description, ordinal, aspects, localDataShape and class
+                    indexedVariables: 0,
+                    presentationHint: presentationHint || defaultPresentationHint
+                }
+            case Packages.com.thingworx.types.BaseTypes:
+                if (isContent) return this._contentOfUnknownObject(object);
+                return {
+                    name: name || 'object',
+                    type: 'BaseTypes.' + object.toString(),
+                    value: 'BaseTypes.' + object.toString(),
+                    variablesReference: this._IDForObject(object),
+                    namedVariables: 1, // class
                     indexedVariables: 0,
                     presentationHint: presentationHint || defaultPresentationHint
                 }
@@ -1364,12 +1457,16 @@ class BMDebuggerRuntime {
                     indexedVariables: object.length,
                     presentationHint: presentationHint || defaultPresentationHint
                 }
+            case Packages.com.thingworx.types.collections.AspectCollection:
+                ValueCollectionName = 'AspectCollection';
             case Packages.com.thingworx.types.collections.ValueCollection:
                 if (isContent) return this._contentOfValueCollection(object);
+                ValueCollectionName = ValueCollectionName || 'ValueCollection';
+
                 return {
                     name: name || 'object',
-                    type: 'ValueCollection',
-                    value: `ValueCollection`,
+                    type: ValueCollectionName,
+                    value: ValueCollectionName,
                     variablesReference: this._IDForObject(object),
                     namedVariables: object.keySet().size() + 1,
                     indexedVariables: 0,
@@ -1667,6 +1764,55 @@ class BMDebuggerRuntime {
         return result;
     }
 
+    /**
+     * Returns the content of the given data shape definition object.
+     * @param object        The object.
+     * @returns             The object's content.
+     */
+    private static _contentOfDataShape(object: any): BMDebuggerVariable[] {
+        const result: BMDebuggerVariable[] = [];
+
+        result.push(this._infoForObject(object.fields, 'fields', {attributes: [], visibility: 'public', kind: 'property'}));
+        result.push(this._infoForObject(this._getClass.invoke(object), '@class', {attributes: [], visibility: 'public', kind: 'virtual'}));
+
+        return result;
+    }
+
+    /**
+     * Returns the content of the given field definition object.
+     * @param object        The object.
+     * @returns             The object's content.
+     */
+    private static _contentOfFieldDefinition(object: any): BMDebuggerVariable[] {
+        const result: BMDebuggerVariable[] = [];
+
+        result.push(this._infoForObject(object.name, 'name', {attributes: [], visibility: 'public', kind: 'property'}));
+        result.push(this._infoForObject(object.baseType, 'baseType', {attributes: [], visibility: 'public', kind: 'property'}));
+        result.push(this._infoForObject(object.ordinal, 'ordinal', {attributes: [], visibility: 'public', kind: 'property'}));
+        result.push(this._infoForObject(object.description, 'description', {attributes: [], visibility: 'public', kind: 'property'}));
+        result.push(this._infoForObject(object.aspects, 'aspects', {attributes: [], visibility: 'public', kind: 'property'}));
+        result.push(this._infoForObject(object.localDataShape, 'localDataShape', {attributes: [], visibility: 'public', kind: 'property'}));
+        result.push(this._infoForObject(this._getClass.invoke(object), '@class', {attributes: [], visibility: 'public', kind: 'virtual'}));
+
+        return result;
+    }
+
+    /**
+     * Returns the content of the given field definition collection object.
+     * @param object        The object.
+     * @returns             The object's content.
+     */
+    private static _contentOfFieldDefinitionCollection(object: any): BMDebuggerVariable[] {
+        const result: BMDebuggerVariable[] = [];
+
+        for (const key of Object.keys(object)) {
+            result.push(this._infoForObject(object[key], key, {attributes: [], visibility: 'public', kind: 'property'}));
+        }
+        result.push(this._infoForObject(this._getClass.invoke(object), '@class', {attributes: [], visibility: 'public', kind: 'virtual'}));
+
+        return result;
+    }
+
 
     /**
      * Returns the content of the given java class.
@@ -1832,6 +1978,25 @@ class BMDebuggerRuntime {
         }
 
         result.push(this._infoForObject(Object.getPrototypeOf(object), '@prototype', {attributes: [], visibility: 'public', kind: 'virtual'}));
+
+        return result;
+    }
+
+
+
+    /**
+     * Returns the contents of the given non-native JSONObject.
+     * @param object    The object.
+     * @returns         An array of contained variables.
+     */
+     private static _contentOfJSONObject(object: any): BMDebuggerVariable[] {
+        const result: BMDebuggerVariable[] = [];
+
+        for (const key in object) {
+            result.push(this._infoForObject(object[key], key, {attributes: [], visibility: 'public', kind: 'property'}));
+        }
+
+        result.push(this._infoForObject(null, '@prototype', {attributes: [], visibility: 'private', kind: 'virtual'}));
 
         return result;
     }
