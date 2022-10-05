@@ -15,10 +15,11 @@ interface SparseArray<V> {
 /**
  * Class helper used for instantiating Java classes.
  */
-const _class = me.tags.class;
+// const _class = (DataShapes.GenericStringList.CreateValuesWithData({values: {item: 'test'} as any}) as any).rows.class;
 
-const _context = _class.forName('org.mozilla.javascript.Context').getDeclaredMethod('getCurrentContext').invoke(null);
-const _x = _context.initStandardObjects(this);
+// const _context = _class.forName('org.mozilla.javascript.Context').getDeclaredMethod('getCurrentContext').invoke(null);
+// const _x = _context.initStandardObjects(this);
+const _x = Subsystems.BMObservingDebugger.InitStandardObjects();
 
 /**
  * A lock that is used to synchronize access to thread information.
@@ -154,7 +155,7 @@ class BMDebuggerRuntime {
     /**
      * A reference to the `getParentScope` function defined on the `Scriptable` class.
      */
-    private static _getParentScope = Packages.java.lang.Class.forName('org.mozilla.javascript.ScriptableObject').getDeclaredMethod('getParentScope');
+    private static _getParentScope = Packages.com.bogdanmihaiciuc.debugger.BMObservingDebugger.getParentScopeMethod()
 
     /**
      * A reference to the Thing class.
@@ -167,9 +168,16 @@ class BMDebuggerRuntime {
     private static _rootEntityClass = Packages.java.lang.Class.forName('com.thingworx.entities.RootEntity');
 
     /**
+     * A reference to the observing debugegr class, used to access types and methods that are no longer safe in
+     * Thingworx 9.3.4 and later.
+     */
+    private static _observingDebuggerClass = Packages.com.bogdanmihaiciuc.debugger.BMObservingDebugger;
+
+    /**
      * A reference to the scriptable object class, used to dermine if references are native javascript objects.
      */
-    private static _scriptableObjectClass = Packages.java.lang.Class.forName('org.mozilla.javascript.ScriptableObject');
+    // private static _scriptableObjectClass = Packages.com.bogdanmihaiciuc.debugger.BMObservingDebugger.scriptableObjectClass();
+    //Packages.java.lang.Class.forName('org.mozilla.javascript.ScriptableObject');
 
     /**
      * A reference to the java getClass method, used for retrieving the underlying class of objects.
@@ -1525,7 +1533,7 @@ class BMDebuggerRuntime {
         }
 
         // For javascript types, use typical js methods
-        if (BMDebuggerRuntime._scriptableObjectClass.isInstance(object)) {
+        if (BMDebuggerRuntime._observingDebuggerClass.isScriptableInstance(object)) {
             // Array's prototype gets treated as an array itself, so the second part of this condition
             // causes it to go through the "object" branch
             if (Array.isArray(object) && Array.isArray(Object.getPrototypeOf(object))) {

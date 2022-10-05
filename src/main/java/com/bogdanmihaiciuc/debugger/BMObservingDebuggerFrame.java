@@ -1,5 +1,6 @@
 package com.bogdanmihaiciuc.debugger;
 
+import com.thingworx.dsl.engine.adapters.ThingworxWrapFactory;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.debug.DebugFrame;
@@ -18,6 +19,10 @@ public class BMObservingDebuggerFrame implements DebugFrame {
 
   @Override
   public void onEnter(Context context, Scriptable activation, Scriptable thisObj, Object[] args) {
+    if (context.getWrapFactory() instanceof ThingworxWrapFactory) {
+      context.setWrapFactory(new BMWrapFactory(context.getWrapFactory()));
+    }
+
     // If this is called recursively, don't process
     if (this.isNotifying) return;
 

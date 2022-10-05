@@ -1,3 +1,7 @@
+# 1.1.1
+
+Compatibility with Thingworx 9.3.4. This release should not be used on prior versions of Thingworx.
+
 # 1.1
 
 The debugger will now report the content of objects of the following types:
