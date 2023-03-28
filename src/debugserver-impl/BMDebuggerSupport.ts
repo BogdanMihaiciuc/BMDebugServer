@@ -46,6 +46,11 @@ interface BMDebuggerServiceScope {
      * The name of the function.
      */
     name: string;
+
+    /**
+     * The name of the file in which this function was originally defined.
+     */
+    filename: string;
 }
 
 

@@ -226,10 +226,14 @@
 
     /**
      * Sets whether the debugger should automatically break when an exception is thrown.
-     * @param breaks    `true` if the debugger should suspend when an exception is thrown, `false` otherwise.
+     * @param breaks                `true` if the debugger should suspend when an exception is thrown, `false` otherwise.
+     * @param caughtExceptions      `true` if the debugger should suspend when an exception is thrown and caught, `false` otherwise.
+     * @param uncaughtExceptions    `true` if the debugger should suspend when an exception is thrown and not caught, `false` otherwise.
      */
-    setBreakOnExceptions({breaks}: {breaks: boolean}): void {
+    setBreakOnExceptions({breaks, caughtExceptions, uncaughtExceptions}: {breaks: boolean, caughtExceptions: boolean, uncaughtExceptions: boolean}): void {
         BMDebuggerRuntime.breaksOnException = breaks;
+        BMDebuggerRuntime.breaksOnCaughtException = caughtExceptions;
+        BMDebuggerRuntime.breaksOnUncaughtException = uncaughtExceptions;
     }
 
     /**
