@@ -347,6 +347,18 @@ class BMDebuggerRuntime {
     static breaksOnException = false;
 
     /**
+     * Should be set to `true` to cause the debugger runtimes to automatically suspend whenever
+     * any exception is thrown and caught.
+     */
+    static breaksOnCaughtException = false;
+
+    /**
+     * Should be set to `true` to cause the debugger runtimes to automatically suspend whenever
+     * any exception is thrown and not caught.
+     */
+    static breaksOnUncaughtException = false;
+
+    /**
      * Returns a breakpoint initialized from the given breakpoint location.
      * @param location          The breakpoint location.
      * @param file              The file in which the breakpoint should be located.
@@ -615,6 +627,11 @@ class BMDebuggerRuntime {
     private _retainCount = 0;
 
     /**
+     * A counter that keeps track of how many nested try/catch blocks the debugger instance is currently in.
+     */
+    private _tryRetainCount = 0;
+
+    /**
      * A reference to self that is useful to identify this debugger runtime when its metods
      * are invoked via a proxy object. 
      */
@@ -787,7 +804,8 @@ class BMDebuggerRuntime {
                     id: BMDebuggerRuntime._scopeIndex,
                     name,
                     line: 0,
-                    column: 0
+                    column: 0,
+                    filename: currentService.filename
                 });
     
                 BMDebuggerRuntime._scopeIndex++;
@@ -823,6 +841,11 @@ class BMDebuggerRuntime {
     private _exception?: any;
 
     /**
+     * A set that contains the exceptions that have been handled so that the debugger no longer stops to handle them.
+     */
+    private _handledExceptions: HashMap<any, true> = new Packages.java.util.WeakHashMap();
+
+    /**
      * Invoked when any throwable is thrown.
      * @param context       The rhino context.
      * @param throwable     The throwable that was thrown.
@@ -834,9 +857,37 @@ class BMDebuggerRuntime {
         // Don't process sythetic exceptions
         if (this._isSyntheticException) return;
 
-        // Suspend if break on exception is enabled
-        if (BMDebuggerRuntime.breaksOnException) {
-            this._suspend(BMDebuggerSuspendReason.Exception, throwable);
+        const handledExceptions = BMDebuggerRuntime.localDebugger()._handledExceptions;
+
+        // If the exception was already handled, don't process it further
+        if (handledExceptions.containsKey(throwable)) return;
+
+        // If the exception is a wrapped handled exception, don't process it further
+        if (throwable.getCause) {
+            handledExceptions.put(throwable, true);
+            const cause = throwable.getCause();
+            if (handledExceptions.containsKey(cause)) return;
+
+            // The exception will be wrapped twice, first by the thingworx runtime and a second time
+            // by rhino, so the second cause is also verified
+            if (cause && cause.getCause && cause.getCause()) {
+                handledExceptions.put(cause.getCause(), true);
+                if (handledExceptions.containsKey(cause.getCause())) return;
+            }
+        }
+
+        // Suspend if break on exception is enabled and the appropriate state is enabled
+        if (this._tryRetainCount) {
+            // If the debugger is in a try/catch block, all or caught exceptions need to be enabled
+            if (BMDebuggerRuntime.breaksOnException || BMDebuggerRuntime.breaksOnCaughtException) {
+                this._suspend(BMDebuggerSuspendReason.Exception, throwable);
+            }
+        }
+        else {
+            // If the debugger is not in a try/catch block, all or caught exceptions need to be enabled
+            if (BMDebuggerRuntime.breaksOnException || BMDebuggerRuntime.breaksOnUncaughtException) {
+                this._suspend(BMDebuggerSuspendReason.Exception, throwable);
+            }
         }
     }
 
@@ -1031,7 +1082,7 @@ class BMDebuggerRuntime {
                         line: frame.line,
                         name: frame.name,
                         presentationHint: firstFrame ? 'label' : 'normal' as any,
-                        source: service.filename,
+                        source: frame.filename || service.filename,
                         id: frame.id,
                     });
                 }
@@ -2218,7 +2269,7 @@ class BMDebuggerRuntime {
             return {
                 breakMode: 'always',
                 description: exception.getMessage(),
-                exceptionId: BMDebuggerRuntime._typeNameOfJavaClass(exception.getClass()),
+                exceptionId: BMDebuggerRuntime._typeNameOfJavaClass(BMDebuggerRuntime._getClass.invoke(exception)),
                 details: details ? details[0] : undefined
             }
         }
@@ -2259,10 +2310,10 @@ class BMDebuggerRuntime {
 
         const result: BMDebuggerExceptionDetails[] = [];
         result.push({
-            fullTypeName: e.getClass().getName(),
+            fullTypeName: this._getClass.invoke(e).getName(),
             message: e.getMessage(),
             stackTrace: e.getStackTrace().join('\n'),
-            typeName: this._typeNameOfJavaClass(e.getClass()),
+            typeName: this._typeNameOfJavaClass(this._getClass.invoke(e)),
             innerException: e.getCause() ? this._detailsOfThrowable(e.getCause(), e) : undefined
         });
 
@@ -2298,6 +2349,11 @@ class BMDebuggerRuntime {
                     break;
                 case BMDebuggerSuspendReason.Exception:
                     this._exception = args[0];
+                    // Store this exception as handled, so the debugger doesn't stop at it
+                    // when it exits this service and returns to a previous context
+                    if (this._exception) {
+                        this._handledExceptions.put(this._exception, true);
+                    }
                     this._suspensionReason = `exception`;
                     break;
                 case BMDebuggerSuspendReason.Requested:
@@ -2422,6 +2478,10 @@ class BMDebuggerRuntime {
             if (activation) {
                 activation.line = breakpoint.line;
                 activation.column = breakpoint.column || 0;
+
+                // As functions do not set their own source files like services do, use the checkpoint's declared
+                // file to report it
+                activation.filename = breakpoint.sourceFile;
             }
 
             if (breakpoint.active) {
@@ -2473,6 +2533,22 @@ class BMDebuggerRuntime {
                     break;
             }
         }
+    }
+
+    /**
+     * A method that is invoked while a debug script is being executed, to signal to the debugger that a try/catch
+     * block is active and any exceptions thrown will be caught.
+     */
+    retainTry(): void {
+        this._tryRetainCount++;
+    }
+
+    /**
+     * A method that is invoked while a debug script is being executed, to signal to the debugger that a try/catch
+     * block is no longer active and any exceptions thrown will be not caught if the try retain count reaches 0.
+     */
+    releaseTry(): void {
+        this._tryRetainCount--;
     }
 
     toString() {
