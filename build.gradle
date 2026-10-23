@@ -45,7 +45,6 @@ project.ext {
 
 repositories {
     mavenCentral()
-    jcenter()
     flatDir {
         dirs project.ext.thingworxSdkDir
     }
@@ -68,13 +67,12 @@ clean.doFirst {
 
 configurations {
     packageDependencies
-    compile {
+    implementation {
         extendsFrom packageDependencies
     }
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
     // add all the dependencies for the extension using the packageDependencies configuration. Here only one is added
 
     //packageDependencies 'org.apache.poi:poi-ooxml:4.0.0'
@@ -87,12 +85,12 @@ dependencies {
     }*/
 
     // the zip version
-    compile fileTree(dir: project.ext.thingworxSdkDir, include: ['*.jar'])
+    implementation fileTree(dir: project.ext.thingworxSdkDir, include: ['*.jar'])
     packageDependencies fileTree(dir: project.ext.localJarDir, include: ['*.jar'])
 }
 
 jar {
-    archiveName = project.ext.extensionJar
+    archiveFileName = project.ext.extensionJar
     manifest {
         attributes(["Built-By"  : project.ext.packageVendor,
                     "Build-Date": new Date().format("yyyy-MM-dd HH:mm:ss")])
@@ -169,8 +167,8 @@ task prepPackage(dependsOn: jar) {
 }
 
 task packageExtension(type: Zip, dependsOn: prepPackage) {
-    archiveName = "${project.name}.zip"
-    destinationDir = new File(project.ext.zipDir)
+    archiveFileName = "${project.name}.zip"
+    destinationDirectory = file(project.ext.zipDir)
     from "${buildDir}/zip/"
 }
 

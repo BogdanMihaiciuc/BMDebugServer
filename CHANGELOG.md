@@ -1,3 +1,9 @@
+# 1.3
+
+Compatibility with Thingworx 10, which runs on Tomcat 11 (`jakarta` namespace). This release should not be used on prior versions of Thingworx.
+
+Resolves an issue where the `BMObservingDebugger` subsystem failing to start left the debugger attached to all scripts and, when set to auto start, prevented Thingworx from starting.
+
 # 1.2
 
 Resolves an issue that caused thrown value details to not be correctly reported on Thingworx 9.3.4 or later.

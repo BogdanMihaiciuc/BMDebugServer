@@ -11,10 +11,7 @@ import com.thingworx.system.ThingWorxServer;
 import com.thingworx.system.subsystems.Subsystem;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import javax.websocket.server.ServerContainer;
-import javax.servlet.ServletContext;
-import javax.websocket.server.ServerEndpointConfig;
-import org.apache.tomcat.websocket.WsWebSocketContainer;
+import jakarta.servlet.ServletContext;
 import org.apache.tomcat.websocket.server.WsServerContainer;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
@@ -53,16 +50,28 @@ public class BMObservingDebugger extends Subsystem implements ContextFactory.Lis
   protected void startSubsystem(ContextType contextType) throws Exception {
     super.startSubsystem(contextType);
 
-    ContextFactory.getGlobal().addListener(this);
+    // An error escaping from here prevents Thingworx from starting when this subsystem auto starts
+    try {
+      if (!endpointInitialized) {
+        ServletContext context = ApplicationContext.getInstance().getServletContext();
+        WsServerContainer container = (WsServerContainer) context.getAttribute("jakarta.websocket.server.ServerContainer");
 
-    if (!endpointInitialized) {
-      ServletContext context = ApplicationContext.getInstance().getServletContext();
-      WsServerContainer container = (WsServerContainer) context.getAttribute("javax.websocket.server.ServerContainer");
-      container.addEndpoint(BMObservingDebuggerEndpoint.class);
-      endpointInitialized = true;
+        // A failed deployment makes Tomcat drop every websocket endpoint, so don't add a duplicate path
+        if (container.findMapping("/ThingworxDebugger") == null) {
+          container.addEndpoint(BMObservingDebuggerEndpoint.class);
+        }
+        endpointInitialized = true;
+      }
+
+      BMObservingDebuggerEndpoint.start();
+
+      // Observe scripts only once everything else has succeeded
+      ContextFactory.getGlobal().addListener(this);
     }
-
-    BMObservingDebuggerEndpoint.start();
+    catch (Throwable e) {
+      ContextFactory.getGlobal().removeListener(this);
+      throw new Exception("Unable to start the BMObservingDebugger subsystem.", e);
+    }
   }
 
   @Override

@@ -50,7 +50,7 @@ const thingworxConnectionDetails = (() => {
 async function buildJava() {
     isCombinedBuild = true;
     await new Promise(resolve => {
-        spawn('./gradlew', ['prepPackage'], {stdio: 'inherit', shell: true}).on('close', resolve);
+        spawn(process.platform == 'win32' ? '.\\gradlew.bat' : './gradlew', ['prepPackage'], {stdio: 'inherit', shell: true}).on('close', resolve);
     });
 }
 
