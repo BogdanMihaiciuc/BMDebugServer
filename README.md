@@ -55,6 +55,12 @@ This project combines two different extensions that are built and merged togethe
 
 Deployment to Thingworx is part of the build process as explained above. Alternatively, you can manually install the extension that is generated in the zip folder in the root of the project.
 
+# Credit/Acknowledgment
+
+[Bogdan Mihaiciuc](https://github.com/BogdanMihaiciuc) - main developer.
+
+[Victor Nicolae](https://github.com/red-victor) - ThingWorx 10 compatibility
+
 # Disclaimer
 
 **🖐 You should only install this on a local server used for development.**
