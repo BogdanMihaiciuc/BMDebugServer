@@ -4,6 +4,8 @@ A thingworx extension that allows debugging typescript projects created using [T
 
 Supporting common debugger features such as setting breakpoints, stepping through code, pausing on exceptions and evaluating expressions, this can significantly reduce the time it takes to fix bugs. This is especially important considering that script errors in thingworx often don't really include any information about what went wrong, even in the script log.
 
+> Compatibility: This version is only compatible with ThingWorx 10 and newer. If you are running ThingWorx 9.x or older, use the latest release from the previous compatibility line; it is the last version compatible with older ThingWorx versions.
+
 **🖐 NOTE: This extension should only be installed on a local development server.** 
 
 The extension creates a debug thing that exposes a lot of information about your running services that is available via the regular Thingworx endpoints. Additionally, it will negatively impact the performance of your Thingworx server.
@@ -54,6 +56,12 @@ This project combines two different extensions that are built and merged togethe
 ## Deployment
 
 Deployment to Thingworx is part of the build process as explained above. Alternatively, you can manually install the extension that is generated in the zip folder in the root of the project.
+
+# Credit/Acknowledgment
+
+[Bogdan Mihaiciuc](https://github.com/BogdanMihaiciuc) - main developer.
+
+[Victor Nicolae](https://github.com/red-victor) - ThingWorx 10 compatibility
 
 # Disclaimer
 
