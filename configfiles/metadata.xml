@@ -2,7 +2,7 @@
     
   <ExtensionPackages>
         
-    <ExtensionPackage name="BMObservingDebugger" description="" vendor="Bogdan Mihaiciuc" packageVersion="1.0.53" minimumThingWorxVersion="10.0.0">
+    <ExtensionPackage name="BMObservingDebugger" description="" vendor="Bogdan Mihaiciuc" packageVersion="1.3.0" minimumThingWorxVersion="10.0.0">
             
       <JarResources/>
           
